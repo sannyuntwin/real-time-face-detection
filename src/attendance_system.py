@@ -74,7 +74,10 @@ if os.path.exists(FACES_DIR):
 print(f"Loaded {len(known_face_names)} registered faces.")
 
 # --- STEP 3: REAL-TIME SCANNING ---
+# Try index 0 first, fall back to 1 (common in WSL where video0 is metadata)
 video_capture = cv2.VideoCapture(0)
+if not video_capture.isOpened():
+    video_capture = cv2.VideoCapture(1)
 frame_count = 0
 # Cache last detection results so the display stays smooth between processed frames
 last_face_locations = []
