@@ -1,0 +1,18 @@
+# Personal face images — do not commit photos
+faces/*
+!faces/.gitkeep
+
+# Attendance database — private data
+data/
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.env
+venv/
+.venv/
+
+# OS
+.DS_Store
+Thumbs.db
