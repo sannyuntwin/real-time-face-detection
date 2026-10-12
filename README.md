@@ -7,61 +7,127 @@ Two tools in one repo:
 | `src/face_detection.py` | Basic webcam face detection with Haar Cascade |
 | `src/attendance_system.py` | Smart attendance logger using face recognition + SQLite |
 
-## Requirements
+---
 
-- Python 3.7+
-- A webcam
-- On Windows/Mac, `cmake` and `dlib` must be installed before `face_recognition` (`pip install cmake dlib`)
+## Setup on Ubuntu (WSL2 or native)
+
+### 1. Install system dependencies
+
+```bash
+sudo apt update
+sudo apt install -y python3-pip cmake python3-dev libopenblas-dev ffmpeg v4l-utils
+```
+
+### 2. Clone the repo
+
+```bash
+git clone https://github.com/sannyuntwin/real-time-face-detection.git
+cd real-time-face-detection
+```
+
+### 3. Create a virtual environment
+
+```bash
+python3 -m venv venv
+source venv/bin/activate
+```
+
+### 4. Install Python packages
 
 ```bash
 pip install -r requirements.txt
 ```
 
-## Face Detection (basic)
+> `dlib` compiles from source — takes 5–10 minutes. This is normal.
+
+### 5. Add your face image
+
+Drop a photo into the `faces/` folder named after the person:
 
 ```bash
-python src/face_detection.py
+cp ~/Downloads/your_photo.jpg faces/your_name.jpg
 ```
 
-Draws green rectangles around detected faces. Press **q** to quit.
-
-## Attendance System
-
-### 1. Register faces
-
-Add one photo per person to the `faces/` folder. Name each file after the person:
-
-```
-faces/
-  john_doe.jpg
-  jane_smith.png
+If your photo is on Windows (WSL users):
+```bash
+cp /mnt/c/Users/YourName/Pictures/photo.jpg faces/your_name.jpg
 ```
 
-The filename (without extension) becomes the display name — underscores are converted to spaces and title-cased.
+The filename becomes the display name — `john_doe.jpg` → **"John Doe"**.
 
-### 2. Run
+---
+
+## WSL2 webcam setup (Windows only)
+
+WSL2 doesn't have webcam access by default. Follow these steps once.
+
+### On Windows PowerShell (as Administrator)
+
+Install usbipd:
+```powershell
+winget install --interactive --exact dorssel.usbipd-win
+```
+
+List USB devices and find your webcam:
+```powershell
+usbipd list
+```
+
+Share and attach the webcam to WSL (replace `1-4` with your webcam's BUSID):
+```powershell
+usbipd bind --busid 1-4
+usbipd attach --wsl --busid 1-4
+```
+
+> You need to run `usbipd attach` every time you restart WSL.
+
+### Add your user to the video group (Ubuntu, one-time)
 
 ```bash
-python src/attendance_system.py
+sudo usermod -aG video $USER
+newgrp video
+```
+
+---
+
+## Running
+
+### Attendance system
+
+```bash
+source venv/bin/activate
+export DISPLAY=:0
+python3 src/attendance_system.py
 ```
 
 - **Green box** = recognized person (logged to DB)
 - **Red box** = unknown face
+- Press **q** to quit
 
-Attendance records are saved to `data/attendance.db`. Press **q** to quit.
-
-### Viewing logs
+### Basic face detection
 
 ```bash
-sqlite3 data/attendance.db "SELECT * FROM logs ORDER BY date, time;"
+source venv/bin/activate
+export DISPLAY=:0
+python3 src/face_detection.py
 ```
+
+---
+
+## View attendance logs
+
+```bash
+python3 -c "import sqlite3; [print(r) for r in sqlite3.connect('data/attendance.db').execute('SELECT * FROM logs ORDER BY date, time')]"
+```
+
+---
 
 ## Project structure
 
 ```
 real-time-face-detection/
-├── faces/               # Drop registered face images here
-├── data/                # SQLite DB auto-created here at runtime
+├── faces/               # Drop registered face images here (gitignored)
+├── data/                # SQLite DB auto-created here at runtime (gitignored)
 ├── models/
 │   └── haarcascade_frontalface_default.xml
 ├── src/
@@ -69,3 +135,14 @@ real-time-face-detection/
 │   └── attendance_system.py
 └── requirements.txt
 ```
+
+---
+
+## Troubleshooting
+
+| Problem | Fix |
+|---------|-----|
+| `No module named 'face_recognition'` | `pip install face_recognition` inside the venv |
+| `can't open camera by index` | Run `usbipd attach --wsl --busid <id>` on Windows |
+| `could not connect to display` | `export DISPLAY=:0` |
+| `select() timeout` | Close Windows apps using the camera; reattach with usbipd |
