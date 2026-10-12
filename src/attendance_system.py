@@ -1,3 +1,13 @@
+import sys
+import types
+
+# face_recognition_models uses pkg_resources which is absent in Python 3.12 venvs
+if 'pkg_resources' not in sys.modules:
+    from importlib.resources import files as _pkg_files
+    _pr = types.ModuleType('pkg_resources')
+    _pr.resource_filename = lambda pkg, path: str(_pkg_files(pkg).joinpath(path))
+    sys.modules['pkg_resources'] = _pr
+
 import cv2
 import face_recognition
 import numpy as np
