@@ -75,8 +75,12 @@ print(f"Loaded {len(known_face_names)} registered faces.")
 
 # --- STEP 3: REAL-TIME SCANNING ---
 video_capture = cv2.VideoCapture(0, cv2.CAP_V4L2)
+video_capture.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'))
+video_capture.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
+video_capture.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
 if not video_capture.isOpened():
     video_capture = cv2.VideoCapture(1, cv2.CAP_V4L2)
+    video_capture.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'))
 frame_count = 0
 # Cache last detection results so the display stays smooth between processed frames
 last_face_locations = []
